@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import br.com.cotiinformatica.components.MessageProducerComponent;
 import br.com.cotiinformatica.domain.dtos.requests.PedidoRequest;
 import br.com.cotiinformatica.domain.dtos.responses.PedidoResponse;
 import br.com.cotiinformatica.domain.entities.Pedido;
@@ -27,12 +28,16 @@ import br.com.cotiinformatica.repositories.PedidoRepository;
 @Service
 public class PedidoServiceImpl implements PedidoService{
 
+	// alterado de private para public para usar nos testes
 	@Autowired // springboot instanciar este cara sem precisar manualmente
-	private PedidoRepository pedidoRepository;
+	public PedidoRepository pedidoRepository;
 	
 	// pedindo para o framework me dar uma instancia do ModelMapper
 	@Autowired
-	private ModelMapper modelMapper;
+	public ModelMapper modelMapper;
+	
+	@Autowired
+	public MessageProducerComponent messageProducerComponent;
 	
 	// pega do DTO - > Entidade (grava)
 	// pega Entidade -> DTO (mostra)
@@ -77,6 +82,8 @@ public class PedidoServiceImpl implements PedidoService{
 		var pedido = modelMapper.map(request, Pedido.class);
 		
 		pedidoRepository.save(pedido);
+		
+		messageProducerComponent.send(pedido);
 		
 		// preciso retornar o pedidoresponse
 		return modelMapper.map(pedido, PedidoResponse.class);
